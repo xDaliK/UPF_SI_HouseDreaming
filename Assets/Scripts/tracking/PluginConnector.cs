@@ -12,6 +12,9 @@ using Newtonsoft.Json;
 
 public class PluginConnector : MonoBehaviour
 {
+    //Cameras
+    [SerializeField] private List<Camera> cameras;
+
     //Enable or disable tracking plugin.
     [Header("On / Off")]
     [SerializeField] private bool enableTracking;
@@ -19,19 +22,20 @@ public class PluginConnector : MonoBehaviour
     //options for configuration
     [Header("Tracking Options")]
     [SerializeField] private int numberOfPlayers;
-    private int numberOfBaseStations = 4;
-    private bool enableRotation = false;
+    [SerializeField] private int numberOfBaseStations;
+    [SerializeField] private bool screenToWorldPosTracking;
+    [SerializeField] private bool enableRotation;
     [SerializeField] private bool enableYAxis;
-    private bool swapXZ = true;
-    private bool invertX = true;
-    private bool invertZ = true;
-    private Vector3 unityWorldCenter = new Vector3(0,0,51.3f); //unity world center !!NOT tracking center!!
+    [SerializeField] private bool swapXZ;
+    [SerializeField] private bool invertX;
+    [SerializeField] private bool invertZ;
+    [SerializeField] private Vector3 unityWorldCenter; //unity world center !!NOT tracking center!!
 
     //list of players (filled from editor)
     [Header("Players")]
     [SerializeField] private List<GameObject> players;
 
-    
+
 
     //attributes for non-tracking input
     private int playerSelected = 1;
@@ -39,12 +43,14 @@ public class PluginConnector : MonoBehaviour
 
     //attributes for tracking calibration
     [Header("Calibration")]
-    private Vector3 calibrationCenter = new Vector3(0,0,51.3f);
-    private float calibrationScale = 15.7f;
+    [SerializeField] private Vector3 calibrationCenter;
+    [SerializeField] [Range(1, 20)] private float calibrationScale;
     private Mat2x2 calibrationTransform;
     private float sheerX;
     private float sheerY;
+    private float xOffset = 0f;
     private float yOffset;
+    private float zOffset = 0f;
     private Vector3 horizontal = Vector3.zero;
     private Vector3 vertical = Vector3.zero;
     private bool calibrated = false;
@@ -52,7 +58,7 @@ public class PluginConnector : MonoBehaviour
     //save calibration attributes
     [Header("Save File Path")]
     [Tooltip("Provided path must be absolute <C:/usr/...> . If no path provided, file will be saved at default location")]
-    private string calibrationSaveFilePath = "D:/Unity_Tracking_Default_Config";
+    [SerializeField] private string calibrationSaveFilePath;
     private string calibrationSaveFileName = "trackingCalibration";
     private string fullCalibrationSaveFilePath;
 
@@ -78,14 +84,14 @@ public class PluginConnector : MonoBehaviour
     private const string dllName = "tracking";
     [DllImport(dllName)] private static extern void startTracking(int numberOfPlayers, int numberOfBaseStations);
     [DllImport(dllName)] private static extern void stopTracking();
-    [DllImport(dllName)] private static extern void updatePositions(int arraySize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] float[] array, bool rotation);
+    [DllImport(dllName)] private static extern void updatePositions(int size, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] float[] array, bool invertX, bool invertZ, bool flipXZ);
     [DllImport(dllName)] private static extern int getNumberOfTrackers();
     [DllImport(dllName)] private static extern int getNumberOfBaseStations();
-    [DllImport(dllName)] private static extern int getSize(bool rotation); //not used
 
     void Awake()
     {
-        if(enableTracking){
+        if (enableTracking)
+        {
             startTracking(numberOfPlayers, numberOfBaseStations);
 
             //set interface text for base station number
@@ -110,7 +116,7 @@ public class PluginConnector : MonoBehaviour
             }
             for (int i = 0; i < numberOfPlayers; i++)
             {
-                if (i<numberOfPlayers)
+                if (i < numberOfPlayers)
                 {
                     playersPositionsText[i].text = Vector3ToString(new Vector3(0, 0, 0));
                 }
@@ -120,44 +126,45 @@ public class PluginConnector : MonoBehaviour
 
     private void OnDisable()
     {
-        if(enableTracking){
+        if (enableTracking)
+        {
             stopTracking();
         }
     }
 
     void Start()
     {
+        //assign calibration save File
+        if (calibrationSaveFilePath == "")
+        {
+            calibrationSaveFilePath = Application.persistentDataPath;
+        }
+        fullCalibrationSaveFilePath = calibrationSaveFilePath + "/" + calibrationSaveFileName + ".json";
+
+        //load calibration if saved
+        LoadCalibration();
+
         //set visibility for trackingInterface to false
         trackingInterface.SetActive(isInterfaceActive);
 
         //set visibility for number of playres
         for (int i = 0; i < players.Count; i++)
         {
-            if ( i >= numberOfPlayers)
+            if (i >= numberOfPlayers)
             {
                 players[i].SetActive(false);
             }
         }
 
         //set the size of the data coming from OpenVR for each player 
-        playerDataSize = enableRotation ? 12 : 3; 
+        playerDataSize = 7;
 
         //start getNewPositions loop when tracking enabled
-        if(enableTracking){
-            //assign calibration save File
-            if (calibrationSaveFilePath == "")
-            {
-                calibrationSaveFilePath = Application.persistentDataPath;
-            }
-            fullCalibrationSaveFilePath = calibrationSaveFilePath + "/" + calibrationSaveFileName + ".json";
-
-            //load calibration if saved
-            LoadCalibration();
+        if (enableTracking)
+        {
             arraySize = numberOfPlayers * playerDataSize;
-            StartCoroutine("ExperimentalPositions");
-            //startCoroutine("ExperimentalPositions");
+            StartCoroutine("GetPositions");
         }
-        
     }
 
     // Update is called once per frame
@@ -165,36 +172,34 @@ public class PluginConnector : MonoBehaviour
     {
         ListenToControls();
 
+        UpdateInterfaceText();
+
         //if tracking is not enabled move players with keyboard
         if (!enableTracking)
         {
-
-            UpdateInterfaceText();
-
             DisabledTrackingPlayerSelector();
 
-            DisabledTrackingPlayerMovement(); 
+            DisabledTrackingPlayerMovement();
         }
     }
 
-    IEnumerator ExperimentalPositions()
+    IEnumerator GetPositions()
     {
-        for(; ; )
+        for (; ; )
         {
             float[] openVrOutputArr = new float[arraySize];
-            updatePositions(arraySize * sizeof(float), openVrOutputArr, enableRotation);
-            
-            
-            for(int i = 0; i< numberOfPlayers; i++)
+            updatePositions(arraySize * sizeof(float), openVrOutputArr, invertX, invertZ, swapXZ);
+
+
+            for (int i = 0; i < numberOfPlayers; i++)
             {
                 int playerIndex = i * playerDataSize;
                 //get position from openvr array
-                Vector3 rawPos = enableRotation ? new Vector3(openVrOutputArr[9+playerIndex], openVrOutputArr[10 + playerIndex], openVrOutputArr[11 + playerIndex]) :
-                                                                                new Vector3(openVrOutputArr[0 + playerIndex], openVrOutputArr[1 + playerIndex], openVrOutputArr[2 + playerIndex]);
-                
-                
+                Vector3 rawPos = new Vector3(openVrOutputArr[0 + playerIndex], openVrOutputArr[1 + playerIndex], openVrOutputArr[2 + playerIndex]);
+
+
                 //apply orientation options to position without changing calibration.
-                ApplyOrientationOptionsToPos(ref rawPos);
+                //ApplyOrientationOptionsToPos(ref rawPos);
                 if (calibrated)
                 {
                     CalculateCalibrationTransform();
@@ -202,85 +207,62 @@ public class PluginConnector : MonoBehaviour
                     //calibrate x, z axis.
                     Vector2 calibratedAxis = new Vector2(rawPos.x, rawPos.z);
                     calibratedAxis = calibrationTransform.MultiplyVector(calibratedAxis);
-                    calibratedAxis *= calibrationScale;
 
                     Vector3 calibratedPos = Vector3.zero;
-                        
-                    calibratedPos.x = calibratedAxis.x;
-                    calibratedPos.y = (rawPos.y + yOffset) * calibrationScale;
-                    calibratedPos.z = calibratedAxis.y;
 
-                    calibratedPos += unityWorldCenter;
+                    if (screenToWorldPosTracking)
+                    {
+                        //Adjustment of the calibratedAxis (we add the offset)
+                        calibratedAxis.x -= xOffset;
+                        calibratedAxis.y -= zOffset;
+
+                        //Screen width and height
+                        int screenWidth = cameras[0].pixelWidth;
+                        int screenHeight = (int)(cameras[0].pixelHeight - (0.355f / 3f) * cameras[0].pixelHeight);
+
+                        //Y-Axis
+                        float yAxisHeight = !enableYAxis ? 0 : rawPos.y + yOffset;
+                        yAxisHeight = cameras[0].transform.position.y - yAxisHeight;
+
+                        calibratedPos = cameras[0].ScreenToWorldPoint(
+                            new Vector3(
+                                (calibratedAxis.x / 6f) * screenWidth,
+                                (1f + (calibratedAxis.y / 3f)) * screenHeight,
+                                yAxisHeight
+                        ));
+                    }
+                    else
+                    {
+                        calibratedAxis *= calibrationScale;
+
+                        calibratedPos.x = calibratedAxis.x;
+                        calibratedPos.y = !enableYAxis ? 0 : (rawPos.y * calibrationScale) + yOffset;
+                        calibratedPos.z = calibratedAxis.y;
+
+                        calibratedPos += unityWorldCenter;
+                    }
 
                     players[i].GetComponent<PlayerMovement>().setPosition(calibratedPos);
                     playersPositionsText[i].text = Vector3ToString(calibratedPos);
 
-                    if(enableRotation)
+                    if (enableRotation)
                     {
-                        //TODO calculate rotatiion
-                        Vector3 column1 = new Vector3(openVrOutputArr[0 + playerIndex], openVrOutputArr[1 + playerIndex], openVrOutputArr[2 + playerIndex]);
-                        Vector3 column2 = new Vector3(openVrOutputArr[3 + playerIndex], openVrOutputArr[4 + playerIndex], openVrOutputArr[5 + playerIndex]);
-                        Vector3 column3 = new Vector3(openVrOutputArr[6 + playerIndex], openVrOutputArr[7 + playerIndex], openVrOutputArr[8 + playerIndex]);
-
-                        Quaternion playerRotation = CalculateRotation(column1, column2, column3);
-                        playersRotationsText[i].text = QuaternionToString(playerRotation);
-                        //players[i].GetComponent<PlayerMovement>().setRotation(playerRotation);
+                        Quaternion playerRotation = new Quaternion(openVrOutputArr[3 + playerIndex], openVrOutputArr[4 + playerIndex], -openVrOutputArr[5 + playerIndex], openVrOutputArr[6 + playerIndex]);
+                        //playersRotationsText[i].text = QuaternionToString(playerRotation);
+                        playersRotationsText[i].text = VectorDirector(playerRotation);
+                        players[i].GetComponent<PlayerMovement>().setRotation(playerRotation);
                     }
                 }
                 else
                 {
                     players[i].GetComponent<PlayerMovement>().setPosition(rawPos);
                     playersPositionsText[i].text = Vector3ToString(rawPos);
-                }    
+                }
             }
             yield return new WaitForSeconds(positionUpdateInterval);
         }
     }
 
-    private Quaternion CalculateRotation(Vector3 c1, Vector3 c2, Vector3 c3)
-    {
-        //Code from Mike Day 
-
-        //row 1 c1.x, c2.x, c3.x -> m00 m01 m02
-        //row 2 c1.y, c2.y, c3.y -> m10 m11 m12
-        //row 3 c1.z, c2.z, c3.z -> m20 m21 m22
-        float trace;
-        Quaternion q; 
-
-        if (c3.z < 0)
-        {
-            if (c1.x > c2.y)
-            {
-                trace = 1 + c1.x - c2.y - c3.z;
-                q = new Quaternion(trace, c2.x + c1.y, c1.z + c3.x, c3.y - c2.z);
-            }
-            else
-            {
-                trace = 1 - c1.x + c2.y - c3.z;
-                q = new Quaternion(c2.x + c1.y, trace, c3.y+c2.z, c1.z - c3.x);
-            }
-        }
-        else
-        {
-            if(c1.x < -c2.y)
-            {
-                trace = 1 - c1.x - c2.y + c3.z;
-                q = new Quaternion(c1.z + c3.x, c3.y + c2.z, trace, c2.x - c1.y);
-            }
-            else
-            {
-                trace = 1 - c1.x + c2.y + c3.z;
-                q = new Quaternion(c3.y - c2.z, c1.z - c3.x, c2.x - c1.y, trace);
-            }
-        }
-        q.w *= 0.5f / Mathf.Sqrt(trace);
-        q.x *= 0.5f / Mathf.Sqrt(trace);
-        q.y *= 0.5f / Mathf.Sqrt(trace);
-        q.z *= 0.5f / Mathf.Sqrt(trace);
-
-        Quaternion testQ = new Quaternion(q.z, q.y, q.z, q.w);
-        return testQ;
-    }
     private void ApplyOrientationOptionsToPos(ref Vector3 pos)
     {
         pos.x = invertX ? -pos.x : pos.x;
@@ -300,10 +282,12 @@ public class PluginConnector : MonoBehaviour
         Vector2 column1 = new Vector2(1, sheerY);
         Vector2 column2 = new Vector2(sheerX, 1);
         calibrationTransform = new Mat2x2(column1, column2);
+        //calibrationTransform.Show();
     }
 
     private void Calibrate()
     {
+        SetXZOffset();
         vertical = GetSouthNorth();
         horizontal = GetWestEast();
         sheerX = -vertical.x;
@@ -320,7 +304,7 @@ public class PluginConnector : MonoBehaviour
         float zMin = 10f;
 
         //find south and north trackers
-        for (int i = 0; i< 4; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (players[i].transform.position.z < zMin)
             {
@@ -333,7 +317,7 @@ public class PluginConnector : MonoBehaviour
                 posNorth = players[i].transform.position;
             }
         }
-
+        //Debug.Log((posNorth - posSouth).normalized);
         return (posNorth - posSouth).normalized;
     }
 
@@ -358,7 +342,28 @@ public class PluginConnector : MonoBehaviour
                 posEast = players[i].transform.position;
             }
         }
+        //Debug.Log((posEast - posWest).normalized);
         return (posEast - posWest).normalized;
+    }
+
+    private void SetXZOffset()
+    {        
+        //We search the player that is nearer to position x=0
+        int playerIndex = 0; float minX = 1000f;
+        for(int i = 0; i<4; i++)
+        {
+            float xValue = players[i].transform.position.x;
+            if(xValue < minX)
+            {
+                minX = xValue;
+                playerIndex = i;
+            }
+        }
+
+        //get position from openvr array
+        Vector3 rawPos = players[playerIndex].transform.position;
+        xOffset = rawPos.x; zOffset = rawPos.z;
+        Debug.Log($"{xOffset}, {zOffset}, {playerIndex}");
     }
 
     private void SetYOffset()
@@ -383,37 +388,37 @@ public class PluginConnector : MonoBehaviour
             trackingInterface.SetActive(isInterfaceActive);
         }
 
-        if (Input.GetKeyDown(KeyCode.C) && enableTracking)
+        if (Input.GetKeyDown(KeyCode.C))
         {
             Calibrate();
         }
 
-        if (Input.GetKeyDown(KeyCode.UpArrow) && enableTracking)
+        if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             sheerY += 0.01f;
         }
 
-        if (Input.GetKeyDown(KeyCode.DownArrow) && enableTracking)
+        if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             sheerY -= 0.01f;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow) && enableTracking)
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             sheerX += 0.01f;
         }
 
-        if (Input.GetKeyDown(KeyCode.RightArrow) && enableTracking)
+        if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             sheerX -= 0.01f;
         }
 
-        if (Input.GetKeyDown(KeyCode.W) && enableTracking)
+        if (Input.GetKeyDown(KeyCode.W))
         {
             calibrationScale += 0.1f;
         }
 
-        if (Input.GetKeyDown(KeyCode.S) && enableTracking)
+        if (Input.GetKeyDown(KeyCode.S))
         {
             calibrationScale -= 0.1f;
         }
@@ -445,6 +450,22 @@ public class PluginConnector : MonoBehaviour
             {
                 playerSelected = 4;
             }
+            if (Input.GetKeyDown(KeyCode.Alpha5))
+            {
+                playerSelected = 5;
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha6))
+            {
+                playerSelected = 6;
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha7))
+            {
+                playerSelected = 7;
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha8))
+            {
+                playerSelected = 8;
+            }
         }
     }
 
@@ -467,20 +488,12 @@ public class PluginConnector : MonoBehaviour
         {
             players[playerSelected - 1].transform.Translate(Vector3.right * Time.deltaTime * trackingDisabledPlayerSpeed);
         }
-        if (Input.GetKey(KeyCode.Q))
-        {
-            players[playerSelected - 1].transform.Translate(Vector3.up * Time.deltaTime * trackingDisabledPlayerSpeed);
-        }
-        if (Input.GetKey(KeyCode.E))
-        {
-            players[playerSelected - 1].transform.Translate(Vector3.down * Time.deltaTime * trackingDisabledPlayerSpeed);
-        }
     }
 
     private void UpdateInterfaceText()
     {
         scaleText.text = calibrationScale.ToString();
-        if(sheerX != 0)
+        if (sheerX != 0)
         {
             sheerXText.text = sheerX.ToString().Substring(0, 5);
             sheerYText.text = sheerY.ToString().Substring(0, 5);
@@ -506,6 +519,12 @@ public class PluginConnector : MonoBehaviour
         return $"({x} , {y} , {z}, {w})";
     }
 
+    private string VectorDirector(Quaternion q)
+    {
+        Vector3 direction = q * Vector3.right;
+        return $"({direction.x}, {direction.y}, {direction.z})";
+    }
+
     private void LoadCalibration()
     {
         Debug.Log("Fetching file at: " + fullCalibrationSaveFilePath);
@@ -519,15 +538,17 @@ public class PluginConnector : MonoBehaviour
             vertical = loadedCalibration.GetVertical();
             calibrationScale = loadedCalibration.calibrationScale;
             sheerX = loadedCalibration.sheerX;
-            sheerY= loadedCalibration.sheerY;
-            yOffset= loadedCalibration.yOffset;
+            sheerY = loadedCalibration.sheerY;
+            xOffset = loadedCalibration.xOffset;
+            yOffset = loadedCalibration.yOffset;
+            zOffset = loadedCalibration.zOffset;
 
             calibrationFileText.text = "Loaded Calibration!";
             calibrated = true;
         }
         catch (Exception)
         {
-            Debug.Log("Calibration not found. If you want to Start with a preloaded calibration, please generate a file with 'Save Current Calibration' button");  
+            Debug.Log("Calibration not found. If you want to Start with a preloaded calibration, please generate a file with 'Save Current Calibration' button");
         }
     }
 
@@ -535,16 +556,18 @@ public class PluginConnector : MonoBehaviour
     {
         //callback for interface "Save current calibration" button
         //if (calibrated)
-        if(true)
+        if (true)
         {
             Debug.Log("Calibration File sotred at: " + fullCalibrationSaveFilePath);
 
             Calibration calibrationToJson = new Calibration
             {
                 calibrationScale = calibrationScale,
-                sheerX= sheerX,
-                sheerY= sheerY,
-                yOffset=yOffset,
+                sheerX = sheerX,
+                sheerY = sheerY,
+                xOffset = xOffset,
+                yOffset = yOffset,
+                zOffset = zOffset,
             };
 
 
@@ -554,7 +577,7 @@ public class PluginConnector : MonoBehaviour
 
 
             string jsonString = JsonConvert.SerializeObject(calibrationToJson);
-            
+
             File.WriteAllText(fullCalibrationSaveFilePath, jsonString);
         }
     }
@@ -604,7 +627,9 @@ public class Calibration
     public float calibrationScale;
     public float sheerX;
     public float sheerY;
+    public float xOffset;
     public float yOffset;
+    public float zOffset;
     public float[] horizontal = new float[3];
     public float[] vertical = new float[3];
 
