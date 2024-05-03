@@ -23,6 +23,14 @@ public class PlayerMovement : MonoBehaviour
     {
         //swith playerIndex
         transform.position = pos;
+
+        /*
+         Vector3 newPos;
+        swich (playerIndex)
+        {
+            case 1:
+                newpos = new Vector3(Math.clamp( ... ) , pos... , pos... );
+         */
     }
 
     public void setRotation(Quaternion quat)
