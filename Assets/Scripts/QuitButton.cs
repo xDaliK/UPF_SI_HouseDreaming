@@ -5,7 +5,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using System.Runtime.InteropServices;
 using System;
-using static System.Net.Mime.MediaTypeNames;
 
 public class QuitButton : MonoBehaviour
 {

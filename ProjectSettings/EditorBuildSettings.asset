@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Populated Room.unity
     guid: 7caa62cc387295b4f914c27933b17bf5
   - enabled: 1
