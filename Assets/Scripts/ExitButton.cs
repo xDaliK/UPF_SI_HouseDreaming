@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-public class StartButton : MonoBehaviour
+public class ExitButton : MonoBehaviour
 {
 
     private AudioSource audioSource;
@@ -34,6 +34,6 @@ public class StartButton : MonoBehaviour
 
     void LoadScene()
     {
-        SceneManager.LoadScene("House");
+        SceneManager.LoadScene("SceneTitle");
     }
 }
