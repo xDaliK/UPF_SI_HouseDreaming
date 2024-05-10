@@ -24,9 +24,9 @@ public class MainMusicScript : MonoBehaviour
         string sceneName = SceneManager.GetActiveScene().name;
 
         // Ajusta el volumen dependiendo de la escena
-        if (sceneName == "SceneTitle")
+        if (sceneName == "SceneRestartTitle")
         {
-            audioSource.volume = 0.2f;
+            audioSource.volume = 0.1f;
         }
         else
         {

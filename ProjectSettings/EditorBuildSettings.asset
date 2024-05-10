@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/EmptyHouse.unity
     guid: 29423359d23b7f044a1ae1bcbc2d5b15
+  - enabled: 1
+    path: Assets/Scenes/SceneRestartTitle.unity
+    guid: 0f160fa50ada4c34584fc202a3e90563
   m_configObjects: {}

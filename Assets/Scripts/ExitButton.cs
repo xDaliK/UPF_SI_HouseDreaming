@@ -34,6 +34,7 @@ public class ExitButton : MonoBehaviour
 
     void LoadScene()
     {
-        SceneManager.LoadScene("SceneTitle");
+
+        SceneManager.LoadScene("SceneRestartTitle");
     }
 }
