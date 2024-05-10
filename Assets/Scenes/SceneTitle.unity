@@ -1856,7 +1856,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 119
+    m_Bits: 887
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -2015,7 +2015,7 @@ GameObject:
   - component: {fileID: 483883240}
   - component: {fileID: 483883239}
   - component: {fileID: 483883243}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player7
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -2575,7 +2575,7 @@ MonoBehaviour:
   - {fileID: 342261394}
   - {fileID: 2041817079}
   enableTracking: 1
-  numberOfPlayers: 4
+  numberOfPlayers: 2
   numberOfBaseStations: 4
   screenToWorldPosTracking: 1
   enableRotation: 1
@@ -2632,7 +2632,7 @@ GameObject:
   - component: {fileID: 676052321}
   - component: {fileID: 676052323}
   - component: {fileID: 676052322}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Text (TMP) Quit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2802,7 +2802,7 @@ GameObject:
   - component: {fileID: 688579214}
   - component: {fileID: 688579213}
   - component: {fileID: 688579212}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: CubeTitle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3384,7 +3384,7 @@ GameObject:
   - component: {fileID: 763629981}
   - component: {fileID: 763629980}
   - component: {fileID: 763629984}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player5
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -3949,7 +3949,7 @@ GameObject:
   - component: {fileID: 1151668550}
   - component: {fileID: 1151668549}
   - component: {fileID: 1151668553}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player8
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -4291,7 +4291,7 @@ GameObject:
   - component: {fileID: 1264190556}
   - component: {fileID: 1264190560}
   - component: {fileID: 1264190561}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player4
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -4549,7 +4549,7 @@ GameObject:
   - component: {fileID: 1280121407}
   - component: {fileID: 1280121406}
   - component: {fileID: 1280121405}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Text (TMP) Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4989,7 +4989,7 @@ GameObject:
   - component: {fileID: 1440896352}
   - component: {fileID: 1440896353}
   - component: {fileID: 1440896348}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player1
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -5521,7 +5521,7 @@ GameObject:
   - component: {fileID: 1471923276}
   - component: {fileID: 1471923280}
   - component: {fileID: 1471923281}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player2
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -5779,7 +5779,7 @@ GameObject:
   - component: {fileID: 1495094669}
   - component: {fileID: 1495094671}
   - component: {fileID: 1495094670}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Text (TMP) Start
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6086,7 +6086,7 @@ GameObject:
   - component: {fileID: 1554760528}
   - component: {fileID: 1554760527}
   - component: {fileID: 1554760531}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player6
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -6982,7 +6982,7 @@ GameObject:
   - component: {fileID: 1818467724}
   - component: {fileID: 1818467728}
   - component: {fileID: 1818467729}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Cube Quit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7596,7 +7596,7 @@ GameObject:
   - component: {fileID: 1865111050}
   - component: {fileID: 1865111054}
   - component: {fileID: 1865111055}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player3
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -8774,7 +8774,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 183
+    m_Bits: 951
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 1
@@ -9069,7 +9069,7 @@ GameObject:
   - component: {fileID: 2068390580}
   - component: {fileID: 2068390584}
   - component: {fileID: 2068390585}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Cube Start
   m_TagString: Untagged
   m_Icon: {fileID: 0}
