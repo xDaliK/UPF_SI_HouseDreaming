@@ -1,49 +1,39 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-public class SkipButton : MonoBehaviour
+public class NextButton : MonoBehaviour
 {
-    public float delayBeforeLoading = 10f;
-    public string sceneToLoad = "EmptyHouse";
+    public SpawnFurnitures furnitureSpawner;
 
     private AudioSource audioSource;
     private Renderer renderer;
     private Color originalColor;
 
-    void Start()
+    void Awake()
     {
         audioSource = GetComponent<AudioSource>();
         renderer = GetComponent<Renderer>();
         originalColor = renderer.material.color;
-
-
-        StartCoroutine(LoadSceneAfterDelay(delayBeforeLoading));
-    }
-
-    IEnumerator LoadSceneAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        SceneManager.LoadScene(sceneToLoad);
     }
 
     void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.name.StartsWith("Player"))
         {
-
             renderer.material.color = originalColor * 0.5f;
-
+            furnitureSpawner.SpawnFurniture();
             audioSource.Play();
-
-
-            Invoke("LoadScene", 2f);
         }
     }
 
-    void LoadScene()
+    void OnTriggerExit(Collider other)
     {
-        SceneManager.LoadScene("EmptyHouse");
+        if (other.gameObject.name.StartsWith("Player"))
+        {
+            renderer.material.color = originalColor;
+        }
     }
 }
-
