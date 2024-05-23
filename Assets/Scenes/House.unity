@@ -3559,7 +3559,7 @@ MonoBehaviour:
   cameras:
   - {fileID: 342261394}
   - {fileID: 2041817079}
-  enableTracking: 0
+  enableTracking: 1
   numberOfPlayers: 2
   numberOfBaseStations: 4
   screenToWorldPosTracking: 1
@@ -9386,6 +9386,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba57c235bbe177044bd39d13beae7f6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gridManager: {fileID: 0}
 --- !u!65 &1713980824
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -12394,6 +12395,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba57c235bbe177044bd39d13beae7f6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gridManager: {fileID: 0}
 --- !u!65 &3101664694926678863
 BoxCollider:
   m_ObjectHideFlags: 0
