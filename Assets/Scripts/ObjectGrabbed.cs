@@ -5,6 +5,7 @@ namespace InteractiveSystemsTemplate
 {
     public class ObjectGrabbed : MonoBehaviour
     {
+
         private AudioSource audioSource;
         private Renderer renderer;
         private Color originalColor;
@@ -12,10 +13,14 @@ namespace InteractiveSystemsTemplate
         private bool isHeld = false;
         private Vector3 offset;
         private float timeOverObject = 0f; // Tiempo que el jugador ha estado sobre el objeto
-        private float releaseHeight = 0.5f; // Altura a la que se suelta el objeto
+        private float releaseHeight = 0.1f; // Altura a la que se suelta el objeto
 
         public GridManagerScript gridManager;
 
+        private float positionplayerx = -9999.9f;
+        private float positionplayery = -9999.9f;
+        private float positionplayerz = -9999.9f;
+        private string objectHeld;
 
         void Awake()
         {
@@ -28,9 +33,9 @@ namespace InteractiveSystemsTemplate
         {
             if (other.gameObject.name.StartsWith("Player"))
             {
-                Debug.Log(renderer.material.color);
+                //Debug.Log(renderer.material.color);
                 renderer.material.color = originalColor * 0.5f; //el material cambia de color en el inspector pero no en la renderización TODO
-                Debug.Log(renderer.material.color);
+                //Debug.Log(renderer.material.color);
 
                 playerTransform = other.transform;
             }
@@ -48,6 +53,12 @@ namespace InteractiveSystemsTemplate
 
         void Update()
         {
+
+            positionplayerx = playerTransform.position.x;
+            positionplayery = playerTransform.position.y;
+            positionplayerz = playerTransform.position.z;
+
+
             if (playerTransform != null && !isHeld) // Solo cuenta el tiempo si el objeto no está siendo agarrado
             {
                 timeOverObject += Time.deltaTime; // Incrementa el contador de tiempo
@@ -55,6 +66,7 @@ namespace InteractiveSystemsTemplate
                 {
                     isHeld = true; // Agarra el objeto
                     // Calcula el desplazamiento entre el jugador y el objeto
+                    objectHeld = gameObject.tag;
                     offset = transform.position - playerTransform.position;
                     timeOverObject = 0f; // Resetea el contador cuando el objeto es agarrado
                 }
@@ -63,20 +75,26 @@ namespace InteractiveSystemsTemplate
             if (isHeld)
             {
                 // Si el jugador está a una altura de 1.8 metros, suelta el objeto
-                Debug.Log(transform.position);
-                Vector3 closestGridPosition1 = gridManager.FindClosestGridPosition(transform.position);
-                Debug.Log(closestGridPosition1);
-                if (playerTransform.position.y >= releaseHeight)
+                if (positionplayery >= releaseHeight)
                 {
                     isHeld = false;
+                    Debug.Log("Soltado1");
 
-                    // Encuentra la celda de la cuadrícula más cercana
-                    Debug.Log("find -1");
-                    Vector3 closestGridPosition2 = gridManager.FindClosestGridPosition(transform.position);
-                    Debug.Log(closestGridPosition2);
 
                     // Mueve el mueble a la posición de la celda más cercana
-                    transform.position = transform.position; //deberia ser hacia closestGridPostion2 TODO (closestGridPosition2 siempre es 0,0,0).
+                    transform.position = transform.position;
+                    Debug.Log("Soltado2");
+
+                    Debug.Log(gameObject.tag);
+                    // Comprueba si el objeto es un sofá y está en la posición correcta
+                    if (objectHeld == "sofa" && Mathf.Abs(transform.position.x - 48.7f) <= 5 && Mathf.Abs(transform.position.z - 21.8f) <= 5)
+                    {
+                        Debug.Log("Sofá correctamente colocado");
+                    }
+                    else if (LayerMask.LayerToName(gameObject.layer) == "sofa")
+                    {
+                        Debug.Log("Sofá mal colocado");
+                    }
                 }
                 else
                 {
@@ -86,6 +104,8 @@ namespace InteractiveSystemsTemplate
                     transform.position = newPosition;
                 }
             }
+
         }
     }
+
 }
