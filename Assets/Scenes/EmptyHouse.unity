@@ -221,7 +221,9 @@ MonoBehaviour:
   - {fileID: 7728353270478263623, guid: bc6c3bbebb6253841aac0149477f75ce, type: 3}
   - {fileID: 2867168205958133588, guid: d8adaba42af48e74ba1fb6a2a97581bd, type: 3}
   - {fileID: 4645230822593960342, guid: 516e7f5259342204f8d878c19ccc5d08, type: 3}
-  - {fileID: 4645230822593960342, guid: 2dddbb0d446c75c48b97cc985c898c55, type: 3}
+  - {fileID: 7479350130572573390, guid: 5e7ce7935a94451488393eaa65897e0b, type: 3}
+  - {fileID: 3997215396088266113, guid: 41c2e3b8a00080a4093a90eee2e4101a, type: 3}
+  - {fileID: 2938660549547130708, guid: 9d147244c4a735a4685343bd6b7d8634, type: 3}
   spawnAreaMin: {x: 39.3, y: -0.4, z: 59.1}
   spawnAreaMax: {x: 39.3, y: -0.4, z: 59.1}
 --- !u!1 &16883532

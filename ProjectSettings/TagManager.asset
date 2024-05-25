@@ -8,6 +8,11 @@ TagManager:
   - BlendPlane1
   - Grabbable
   - sofa
+  - bed
+  - plant
+  - cabinet
+  - bookcase
+  - television
   layers:
   - Default
   - TransparentFX
