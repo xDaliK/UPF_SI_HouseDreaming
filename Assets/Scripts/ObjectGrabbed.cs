@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class ObjectGrabbed : MonoBehaviour
@@ -15,16 +16,18 @@ public class ObjectGrabbed : MonoBehaviour
     private string objectHeld;
     private Vector3 lastKnownPlayerPosition;
 
+
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
         renderer = GetComponent<Renderer>();
         originalColor = renderer.material.color;
+
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.name.StartsWith("Player"))
+        if (other.gameObject.name.StartsWith("Player") && !WinController.instance.isCorrectlyPlaced[gameObject.tag])
         {
             renderer.material.color = originalColor * 0.75f;
             playerTransform = other.transform;
@@ -49,6 +52,21 @@ public class ObjectGrabbed : MonoBehaviour
     {
         Debug.Log("Cogido: " + isHeld);
 
+        string dictionaryString = "";
+        foreach (KeyValuePair<string, bool> entry in WinController.instance.isCorrectlyPlaced)
+        {
+            dictionaryString += "Key: " + entry.Key + " Value: " + entry.Value + "\n";
+        }
+
+        //Imprime la cadena
+        Debug.Log(dictionaryString);
+
+
+        if (AllObjectsPlacedCorrectly())
+        {
+            Debug.Log("¡Has ganado!");
+        }
+
         if (playerTransform != null && !isHeld) // Solo cuenta el tiempo si el objeto no est� siendo agarrado
         {
             timeOverObject += Time.deltaTime; // Incrementa el contador de tiempo
@@ -69,7 +87,7 @@ public class ObjectGrabbed : MonoBehaviour
 
             // Si el jugador est� a una altura de 1.8 metros, suelta el objeto
             Debug.Log("Altura: " + lastKnownPlayerPosition.y);
-            if (lastKnownPlayerPosition.y >= releaseHeight)
+            if (lastKnownPlayerPosition.y >= releaseHeight || Input.GetKeyDown(KeyCode.Q)) //tecla q para debugar
             {
                 isHeld = false;
 
@@ -79,6 +97,7 @@ public class ObjectGrabbed : MonoBehaviour
                 if (objectHeld == "sofa" && Mathf.Abs(transform.position.x - 48.7f) <= 5 && Mathf.Abs(transform.position.z - 21.8f) <= 5)
                 {
                     Debug.Log("Sofá correctamente colocado");
+                    WinController.instance.isCorrectlyPlaced["sofa"] = true;
                 }
                 else if (objectHeld == "sofa")
                 {
@@ -88,6 +107,7 @@ public class ObjectGrabbed : MonoBehaviour
                 if (objectHeld == "bed" && Mathf.Abs(transform.position.x - 84.17352f) <= 5 && Mathf.Abs(transform.position.z - 54.87921f) <= 5)
                 {
                     Debug.Log("Cama correctamente colocada");
+                    WinController.instance.isCorrectlyPlaced["bed"] = true;
                 }
                 else if (objectHeld == "bed")
                 {
@@ -97,6 +117,8 @@ public class ObjectGrabbed : MonoBehaviour
                 if (objectHeld == "plant" && Mathf.Abs(transform.position.x - (35.7f)) <= 10 && Mathf.Abs(transform.position.z - 83.16f) <= 10)
                 {
                     Debug.Log("Planta correctamente colocada");
+                    WinController.instance.isCorrectlyPlaced["plant"] = true;
+                    Debug.Log(WinController.instance.isCorrectlyPlaced["plant"]);
                 }
                 else if (objectHeld == "plant")
                 {
@@ -106,6 +128,7 @@ public class ObjectGrabbed : MonoBehaviour
                 if (objectHeld == "cabinet" && Mathf.Abs(transform.position.x - (51.3f)) <= 5 && Mathf.Abs(transform.position.z - 52.72921f) <= 5)
                 {
                     Debug.Log("Cabinet correctamente colocado");
+                    WinController.instance.isCorrectlyPlaced["cabinet"] = true;
                 }
                 else if (objectHeld == "cabinet")
                 {
@@ -115,15 +138,18 @@ public class ObjectGrabbed : MonoBehaviour
                 if (objectHeld == "bookcase" && Mathf.Abs(transform.position.x - (19.77352f)) <= 5 && Mathf.Abs(transform.position.z - 47.37921f) <= 5)
                 {
                     Debug.Log("Bookcase correctamente colocado");
+                    WinController.instance.isCorrectlyPlaced["bookcase"] = true;
                 }
                 else if (objectHeld == "bookcase")
                 {
                     Debug.Log("Bookcase mal colocado");
+
                 }
 
                 if (objectHeld == "television" && Mathf.Abs(transform.position.x - (32.5f)) <= 5 && Mathf.Abs(transform.position.z - 23.4f) <= 5)
                 {
                     Debug.Log("Television correctamente colocado");
+                    WinController.instance.isCorrectlyPlaced["television"] = true;
                 }
                 else if (objectHeld == "television")
                 {
@@ -140,5 +166,27 @@ public class ObjectGrabbed : MonoBehaviour
                 Debug.Log("Posición del objeto actualizada a: " + newPosition);
             }
         }
+
+
+
     }
+
+
+    bool AllObjectsPlacedCorrectly()
+    {
+
+        foreach (KeyValuePair<string, bool> entry in WinController.instance.isCorrectlyPlaced)
+        {
+            if (!entry.Value)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
 }
+
+

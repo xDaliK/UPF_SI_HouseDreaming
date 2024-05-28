@@ -15,8 +15,6 @@ namespace InteractiveSystemsTemplate
         private float timeOverObject = 0f; // Tiempo que el jugador ha estado sobre el objeto
         private float releaseHeight = 0.2f; // Altura a la que se suelta el objeto
 
-        public GridManagerScript gridManager;
-
         private string objectHeld;
 
         void Awake()

@@ -29,7 +29,7 @@ public class SpawnFurnitures : MonoBehaviour
             );
 
             // Instancia el mueble en la posición aleatoria
-            currentFurniture = Instantiate(furniturePrefab, spawnPosition, Quaternion.identity);
+            currentFurniture = Instantiate(furniturePrefab, spawnPosition, furniturePrefab.transform.rotation);
 
             // Elimina el prefab de mueble de la lista para que no se repita
             furniturePrefabs.RemoveAt(randomIndex);
