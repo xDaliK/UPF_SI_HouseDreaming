@@ -218,7 +218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   furniturePrefabs:
-  - {fileID: 7728353270478263623, guid: bc6c3bbebb6253841aac0149477f75ce, type: 3}
+  - {fileID: 1183449839989830924, guid: 7e641ea242709ed40969010a45e89460, type: 3}
   - {fileID: 2867168205958133588, guid: d8adaba42af48e74ba1fb6a2a97581bd, type: 3}
   - {fileID: 4645230822593960342, guid: 516e7f5259342204f8d878c19ccc5d08, type: 3}
   - {fileID: 7479350130572573390, guid: 5e7ce7935a94451488393eaa65897e0b, type: 3}
@@ -226,6 +226,7 @@ MonoBehaviour:
   - {fileID: 2938660549547130708, guid: 9d147244c4a735a4685343bd6b7d8634, type: 3}
   spawnAreaMin: {x: 39.3, y: -0.4, z: 59.1}
   spawnAreaMax: {x: 39.3, y: -0.4, z: 59.1}
+  currentFurniture: {fileID: 0}
 --- !u!1 &16883532
 GameObject:
   m_ObjectHideFlags: 0
@@ -3986,7 +3987,7 @@ MonoBehaviour:
   cameras:
   - {fileID: 342261394}
   - {fileID: 2041817079}
-  enableTracking: 1
+  enableTracking: 0
   numberOfPlayers: 2
   numberOfBaseStations: 4
   screenToWorldPosTracking: 1

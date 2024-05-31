@@ -9,7 +9,7 @@ public class SpawnFurnitures : MonoBehaviour
     public Vector3 spawnAreaMin; // Esquina inferior izquierda del área de spawn
     public Vector3 spawnAreaMax; // Esquina superior derecha del área de spawn
 
-    private GameObject currentFurniture;
+    public GameObject currentFurniture;
 
     public void SpawnFurniture()
     {
@@ -32,6 +32,11 @@ public class SpawnFurnitures : MonoBehaviour
 
             // Instancia el mueble en la posición aleatoria
             currentFurniture = Instantiate(furniturePrefab, spawnPosition, furniturePrefab.transform.rotation);
+
+            // Ajusta la posición y del objeto instanciado
+            Vector3 position = currentFurniture.transform.position;
+            position.y = 0; // Ajusta esto al valor que necesites
+            currentFurniture.transform.position = position;
 
             // Elimina el prefab de mueble de la lista para que no se repita
             furniturePrefabs.RemoveAt(randomIndex);

@@ -12,18 +12,23 @@ public class ObjectGrabbed : MonoBehaviour
     private bool isHeld = false;
     private Vector3 offset;
     private float timeOverObject = 0f; // Tiempo que el jugador ha estado sobre el objeto
-    private float releaseHeight = 5f; // Altura a la que se suelta el objeto
+    private float releaseHeight = 1.25f; // Altura a la que se suelta el objeto
     private string objectHeld;
     private Vector3 lastKnownPlayerPosition;
 
     private GameObject[] winTextObjects;
 
+    private GameObject interactingPlayer = null;
     private int playersInteracting = 0;
+
+    private SpawnFurnitures spawnFurnitures;
 
 
 
     public AudioSource correctPlacementAudio;
     public AudioSource incorrectPlacementAudio;
+    public AudioSource loadingAudio;
+    public AudioSource heldAudio;
 
 
     void Awake()
@@ -36,8 +41,15 @@ public class ObjectGrabbed : MonoBehaviour
         AudioSource[] audioSources = GetComponents<AudioSource>();
         incorrectPlacementAudio = audioSources[0];
         correctPlacementAudio = audioSources[1];
+        loadingAudio = audioSources[2];
+        heldAudio = audioSources[3];
 
+    }
 
+    void Start()
+    {
+        // Encuentra el script SpawnFurnitures en la escena y almacena la referencia
+        spawnFurnitures = GameObject.FindObjectOfType<SpawnFurnitures>();
     }
 
     void OnTriggerEnter(Collider other)
@@ -45,13 +57,18 @@ public class ObjectGrabbed : MonoBehaviour
         if (other.gameObject.name.StartsWith("Player") && !WinController.instance.isCorrectlyPlaced[gameObject.tag])
         {
 
+            if (interactingPlayer != null) return;
+            interactingPlayer = other.gameObject;
+            Debug.Log("playerInteracting: " + interactingPlayer);
             if ((gameObject.tag == "sofa" || gameObject.tag == "bed") && !isHeld)
             {
+
                 //playersInteracting++; // Incrementa el número de jugadores interactuando con el sofa o la cama
 
                 playersInteracting = 2; //for debug
                 if (playersInteracting >= 2 && !WinController.instance.isCorrectlyPlaced[gameObject.tag])
                 {
+                    loadingAudio.Play();
                     renderer.material.color = originalColor * 0.75f;
                     playerTransform = other.transform;
                     Debug.Log("Player ha entrado en el trigger.");
@@ -60,6 +77,7 @@ public class ObjectGrabbed : MonoBehaviour
             }
             else if (!isHeld && !WinController.instance.isCorrectlyPlaced[gameObject.tag])
             {
+                loadingAudio.Play();
                 renderer.material.color = originalColor * 0.75f;
                 playerTransform = other.transform;
                 Debug.Log("Player ha entrado en el trigger.");
@@ -72,6 +90,9 @@ public class ObjectGrabbed : MonoBehaviour
     {
         if (other.gameObject.name.StartsWith("Player"))
         {
+            if (other.gameObject != interactingPlayer) return;
+            interactingPlayer = null;
+            Debug.Log("playerInteracting: " + interactingPlayer);
             if (gameObject.tag == "sofa" || gameObject.tag == "bed")
             {
                 //playersInteracting--; // Decrementa el número de jugadores interactuando con el sfoa o cama
@@ -84,6 +105,7 @@ public class ObjectGrabbed : MonoBehaviour
                     if (playerTransform.position != null)
                         lastKnownPlayerPosition = playerTransform.position;
                     playerTransform = null;
+
                 }
             }
             else
@@ -94,6 +116,7 @@ public class ObjectGrabbed : MonoBehaviour
                 if (playerTransform.position != null)
                     lastKnownPlayerPosition = playerTransform.position;
                 playerTransform = null;
+
             }
         }
     }
@@ -117,9 +140,13 @@ public class ObjectGrabbed : MonoBehaviour
             if (WinController.instance.isCorrectlyPlaced[gameObject.tag]) return;
 
             timeOverObject += Time.deltaTime; // Incrementa el contador de tiempo
+
             Debug.Log("Tiempo sobre objeto: " + timeOverObject);
-            if (timeOverObject >= 2f) // Si el jugador ha estado sobre el objeto durante 2 segundos
+
+            if (timeOverObject >= 1.5f) // Si el jugador ha estado sobre el objeto durante 2 segundos
             {
+
+                heldAudio.Play();
                 isHeld = true; // Agarra el objeto
                 // Calcula el desplazamiento entre el jugador y el objeto
                 objectHeld = gameObject.tag;
@@ -142,7 +169,7 @@ public class ObjectGrabbed : MonoBehaviour
 
 
                 // Realiza la comprobación de posición solo cuando el objeto se suelta
-                if (objectHeld == "sofa" && Mathf.Abs(transform.position.x - 48.7f) <= 5 && Mathf.Abs(transform.position.z - 21.8f) <= 5)
+                if (objectHeld == "sofa" && Mathf.Abs(transform.position.x - 30.02f) <= 5 && Mathf.Abs(transform.position.z - 21.63f) <= 5)
                 {
                     Debug.Log("Sofá correctamente colocado");
                     WinController.instance.isCorrectlyPlaced["sofa"] = true;
@@ -231,9 +258,57 @@ public class ObjectGrabbed : MonoBehaviour
 
 
 
+
+
+
+        // Modo de depuración: si se pulsa la tecla E, coloca el objeto en la posición correcta automáticamente
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            GameObject currentFurniture = spawnFurnitures.currentFurniture;
+            if (currentFurniture.tag == "sofa" && !WinController.instance.isCorrectlyPlaced["sofa"])
+            {
+                currentFurniture.transform.position = new Vector3(30.02f, transform.position.y, 21.63f);
+                Debug.Log("Sofá colocado correctamente (modo de depuración)");
+                WinController.instance.isCorrectlyPlaced["sofa"] = true;
+                correctPlacementAudio.Play();
+            }
+            else if (currentFurniture.tag == "bed" && !WinController.instance.isCorrectlyPlaced["bed"])
+            {
+                currentFurniture.transform.position = new Vector3(84.17352f, transform.position.y, 54.87921f);
+                Debug.Log("Cama colocada correctamente (modo de depuración)");
+                WinController.instance.isCorrectlyPlaced["bed"] = true;
+                correctPlacementAudio.Play();
+            }
+            else if (currentFurniture.tag == "plant" && !WinController.instance.isCorrectlyPlaced["plant"])
+            {
+                currentFurniture.transform.position = new Vector3(35.7f, transform.position.y, 83.16f);
+                Debug.Log("Planta colocada correctamente (modo de depuración)");
+                WinController.instance.isCorrectlyPlaced["plant"] = true;
+                correctPlacementAudio.Play();
+            }
+            else if (currentFurniture.tag == "cabinet" && !WinController.instance.isCorrectlyPlaced["cabinet"])
+            {
+                currentFurniture.transform.position = new Vector3(51.3f, transform.position.y, 52.72921f);
+                Debug.Log("Cabinet colocado correctamente (modo de depuración)");
+                WinController.instance.isCorrectlyPlaced["cabinet"] = true;
+                correctPlacementAudio.Play();
+            }
+            else if (currentFurniture.tag == "bookcase" && !WinController.instance.isCorrectlyPlaced["bookcase"])
+            {
+                currentFurniture.transform.position = new Vector3(19.77352f, transform.position.y, 47.37921f);
+                Debug.Log("Bookcase colocado correctamente (modo de depuración)");
+                WinController.instance.isCorrectlyPlaced["bookcase"] = true;
+                correctPlacementAudio.Play();
+            }
+            else if (currentFurniture.tag == "television" && !WinController.instance.isCorrectlyPlaced["television"])
+            {
+                currentFurniture.transform.position = new Vector3(32.5f, transform.position.y, 23.4f);
+                Debug.Log("Television colocada correctamente (modo de depuración)");
+                WinController.instance.isCorrectlyPlaced["television"] = true;
+                correctPlacementAudio.Play();
+            }
+        }
     }
-
-
 }
 
 

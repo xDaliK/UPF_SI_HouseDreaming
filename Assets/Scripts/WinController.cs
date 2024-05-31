@@ -55,7 +55,7 @@ public class WinController : MonoBehaviour
 
             hasWon = true;
 
-            Invoke("LoadScene", 2f);
+            Invoke("LoadScene", 4f);
         }
     }
 
