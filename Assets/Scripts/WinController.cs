@@ -76,6 +76,6 @@ public class WinController : MonoBehaviour
 
     void LoadScene()
     {
-        SceneManager.LoadScene("SceneTitle");
+        SceneManager.LoadScene("SceneRestartTitle");
     }
 }
