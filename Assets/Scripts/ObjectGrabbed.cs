@@ -5,32 +5,31 @@ using UnityEngine;
 
 public class ObjectGrabbed : MonoBehaviour
 {
+    // Private variables to hold references to the AudioSource and Renderer components, the original color of the Renderer, the Transform of the player, and the offset between the player and the object.
     private AudioSource audioSource;
     private Renderer renderer;
     private Color originalColor;
     private Transform playerTransform;
     private bool isHeld = false;
     private Vector3 offset;
-    private float timeOverObject = 0f; // Tiempo que el jugador ha estado sobre el objeto
-    private float releaseHeight = 1.25f; // Altura a la que se suelta el objeto
+    private float timeOverObject = 0f; // Time that the player has been over the object
+    private float releaseHeight = 1.25f; // Height at which the object is released
     private string objectHeld;
     private Vector3 lastKnownPlayerPosition;
 
+    // Private variables to hold references to the win text objects, the interacting player, the number of players interacting, and the SpawnFurnitures script.
     private GameObject[] winTextObjects;
-
     private GameObject interactingPlayer = null;
     private int playersInteracting = 0;
-
     private SpawnFurnitures spawnFurnitures;
 
-
-
+    // Public variables to hold references to the correct placement audio, incorrect placement audio, loading audio, and held audio.
     public AudioSource correctPlacementAudio;
     public AudioSource incorrectPlacementAudio;
     public AudioSource loadingAudio;
     public AudioSource heldAudio;
 
-
+    // Initializes the AudioSource, Renderer, original color, win text objects, and audio sources.
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
@@ -46,12 +45,17 @@ public class ObjectGrabbed : MonoBehaviour
 
     }
 
+
+    // Finds the SpawnFurnitures script in the scene and stores the reference.
     void Start()
     {
-        // Encuentra el script SpawnFurnitures en la escena y almacena la referencia
+
         spawnFurnitures = GameObject.FindObjectOfType<SpawnFurnitures>();
     }
 
+
+    // Changes the color of the Renderer when a player interacts with the furnitre (controlling the number of players on it),
+    // plays the AudioSource, and invokes the LoadScene method.
     void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.name.StartsWith("Player") && !WinController.instance.isCorrectlyPlaced[gameObject.tag])
@@ -63,7 +67,7 @@ public class ObjectGrabbed : MonoBehaviour
             if ((gameObject.tag == "sofa" || gameObject.tag == "bed") && !isHeld)
             {
 
-                //playersInteracting++; // Incrementa el número de jugadores interactuando con el sofa o la cama
+                //playersInteracting++; // Controls the number of players interacting with the bed or sofa (to test)
 
                 playersInteracting = 2; //for debug
                 if (playersInteracting >= 2 && !WinController.instance.isCorrectlyPlaced[gameObject.tag])
@@ -86,6 +90,7 @@ public class ObjectGrabbed : MonoBehaviour
         }
     }
 
+    // Restores the original color of the Renderer, controls the players left interacting with the furnitures and the last position of the height registered.
     void OnTriggerExit(Collider other)
     {
         if (other.gameObject.name.StartsWith("Player"))
@@ -95,12 +100,12 @@ public class ObjectGrabbed : MonoBehaviour
             Debug.Log("playerInteracting: " + interactingPlayer);
             if (gameObject.tag == "sofa" || gameObject.tag == "bed")
             {
-                //playersInteracting--; // Decrementa el número de jugadores interactuando con el sfoa o cama
+                //playersInteracting--; // Decrease the number of players interacting with the sofa or bed (to test)
                 playersInteracting = 0; //for debug
                 if (playersInteracting == 0)
                 {
                     renderer.material.color = originalColor;
-                    timeOverObject = 0f; // Resetea el contador cuando el jugador sale del objeto
+                    timeOverObject = 0f; // Reset the counter when the players exit the furniture
                     Debug.Log("Player ha salido del trigger.");
                     if (playerTransform.position != null)
                         lastKnownPlayerPosition = playerTransform.position;
@@ -111,7 +116,7 @@ public class ObjectGrabbed : MonoBehaviour
             else
             {
                 renderer.material.color = originalColor;
-                timeOverObject = 0f; // Resetea el contador cuando el jugador sale del objeto
+                timeOverObject = 0f; // Reset the counter when the players exit the furniture
                 Debug.Log("Player ha salido del trigger.");
                 if (playerTransform.position != null)
                     lastKnownPlayerPosition = playerTransform.position;
@@ -121,6 +126,9 @@ public class ObjectGrabbed : MonoBehaviour
         }
     }
 
+    // Checks if the player has won and, if so, activates the win text objects, plays the win audio, and loads the next scene.
+    // Also, it checks if the player is holding an object and, if so, whether the player is at a certain height or has pressed a certain key (debug).
+    // If either condition is met, the object is released and its position is checked to see if it has been correctly placed.
     void Update()
     {
         Debug.Log("Cogido: " + isHeld);
@@ -131,65 +139,64 @@ public class ObjectGrabbed : MonoBehaviour
             dictionaryString += "Key: " + entry.Key + " Value: " + entry.Value + "\n";
         }
 
-        //Imprime la cadena
+        //Debug of the state of the furnitures
         Debug.Log(dictionaryString);
 
 
-        if (playerTransform != null && !isHeld) // Solo cuenta el tiempo si el objeto no est� siendo agarrado
+        if (playerTransform != null && !isHeld) // Only count the time if the object is not being held
         {
             if (WinController.instance.isCorrectlyPlaced[gameObject.tag]) return;
 
-            timeOverObject += Time.deltaTime; // Incrementa el contador de tiempo
+            timeOverObject += Time.deltaTime; // Increment the time counter
 
-            Debug.Log("Tiempo sobre objeto: " + timeOverObject);
+            Debug.Log("Time over object: " + timeOverObject);
 
-            if (timeOverObject >= 1.5f) // Si el jugador ha estado sobre el objeto durante 2 segundos
+            if (timeOverObject >= 1.5f) // If the player has been over the object for 2 seconds
             {
 
                 heldAudio.Play();
-                isHeld = true; // Agarra el objeto
-                // Calcula el desplazamiento entre el jugador y el objeto
-                objectHeld = gameObject.tag;
+                isHeld = true; // Grab the object
+                // Calculate the offset between the player and the object
+                objectHeld = gameObject.tag; //Name of the furniture grabbed ( its tag )
                 offset = transform.position - playerTransform.position;
-                timeOverObject = 0f; // Resetea el contador cuando el objeto es agarrado
-                Debug.Log("Objeto agarrado: " + objectHeld);
+                timeOverObject = 0f; // Reset the counter when the object is grabbed
+                Debug.Log("Object grabbed: " + objectHeld);
             }
         }
 
         if (isHeld)
         {
-
-            // Si el jugador est� a una altura de 1.8 metros, suelta el objeto
-            Debug.Log("Altura: " + lastKnownPlayerPosition.y);
-            if (lastKnownPlayerPosition.y >= releaseHeight || Input.GetKeyDown(KeyCode.Q)) //tecla q para debugar
+            // If the player is at a height of 1.25 meters, release the object
+            Debug.Log("Height: " + lastKnownPlayerPosition.y);
+            if (lastKnownPlayerPosition.y >= releaseHeight || Input.GetKeyDown(KeyCode.Q)) // Q key for debugging
             {
                 isHeld = false;
 
-                Debug.Log("Soltado Objeto");
+                Debug.Log("Object Released");
 
-
-                // Realiza la comprobación de posición solo cuando el objeto se suelta
+                // Perform the position check only when the object is released. The WinController instance of the dictionary controls
+                //the correct placement of all the furnitures and when they are in the correct place (with a little of margin) it puts the furniture to true.
                 if (objectHeld == "sofa" && Mathf.Abs(transform.position.x - 30.02f) <= 5 && Mathf.Abs(transform.position.z - 21.63f) <= 5)
                 {
-                    Debug.Log("Sofá correctamente colocado");
+                    Debug.Log("Sofa correctly placed");
                     WinController.instance.isCorrectlyPlaced["sofa"] = true;
                     correctPlacementAudio.Play();
                 }
                 else if (objectHeld == "sofa")
                 {
-                    Debug.Log("Sofá mal colocado");
+                    Debug.Log("Sofa incorrectly placed");
                     incorrectPlacementAudio.Play();
                 }
 
                 if (objectHeld == "bed" && Mathf.Abs(transform.position.x - 84.17352f) <= 7.5f && Mathf.Abs(transform.position.z - 54.87921f) <= 7.5f)
                 {
-                    Debug.Log("Cama correctamente colocada");
+                    Debug.Log("Bed correctly placed");
                     WinController.instance.isCorrectlyPlaced["bed"] = true;
                     correctPlacementAudio.Play();
                 }
                 else if (objectHeld == "bed")
                 {
-                    Debug.Log("Cama mal colocada");
+                    Debug.Log("Bed incorrectly placed");
                     incorrectPlacementAudio.Play();
                 }
 
@@ -246,11 +253,11 @@ public class ObjectGrabbed : MonoBehaviour
                 }
             }
 
+            // Move the object to the player's position plus the offset
             else if (playerTransform != null)
             {
-                // Mueve el objeto a la posici�n del jugador m�s el desplazamiento
                 Vector3 newPosition = playerTransform.position + offset;
-                newPosition.y = transform.position.y; // Mant�n la altura constante
+                newPosition.y = transform.position.y; // Keep the height constant
                 transform.position = newPosition;
                 Debug.Log("Posición del objeto actualizada a: " + newPosition);
             }
@@ -261,7 +268,8 @@ public class ObjectGrabbed : MonoBehaviour
 
 
 
-        // Modo de depuración: si se pulsa la tecla E, coloca el objeto en la posición correcta automáticamente
+        // Debug mode: if the E key is pressed, it automatically places the furniture in the correct position and puts the WinController instance of the
+        // dictionary to true.
         if (Input.GetKeyDown(KeyCode.E))
         {
             GameObject currentFurniture = spawnFurnitures.currentFurniture;

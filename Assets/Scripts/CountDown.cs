@@ -7,6 +7,7 @@ public class CountDown : MonoBehaviour
     public float timeStart = 10;
     private TextMeshPro timerText;
 
+    // Initializes the timer and starts the countdown.
     void Start()
     {
         timerText = GetComponent<TextMeshPro>();
@@ -14,6 +15,7 @@ public class CountDown : MonoBehaviour
         StartCoroutine(CountdownToZero());
     }
 
+    // This coroutine handles the countdown to zero.
     IEnumerator CountdownToZero()
     {
         while (timeStart > 0)
